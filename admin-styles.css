@@ -321,6 +321,39 @@ th {
 .btn-secondary:hover {
     background: #e2e8f0;
 }
+/* Add these styles to your existing CSS */
+
+.department-selector {
+    padding: 0.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    width: 100%;
+    max-width: 200px;
+    background-color: white;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.department-selector:hover {
+    border-color: var(--primary);
+}
+
+.department-selector:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
+}
+
+.rating-cell {
+    color: #eab308;
+    letter-spacing: 2px;
+}
+
+/* Adjust table cell padding for the new selector */
+.feedback-table td {
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+}
 
 /* Responsive Design */
 @media (max-width: 1024px) {

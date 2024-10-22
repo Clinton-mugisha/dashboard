@@ -1,42 +1,67 @@
-// Mock data for feedback
+// Updated mock data structure to support multiple departments per patient
 const mockFeedback = [
     {
         id: 1,
         patientName: "John Smith",
-        department: "Reception",
-        rating: 4,
+        departments: [
+            {
+                name: "Reception",
+                rating: 4,
+                comment: "Great service at the reception"
+            },
+            {
+                name: "Nursing",
+                rating: 5,
+                comment: "Excellent nursing staff"
+            }
+        ],
         date: "2024-10-20",
-        status: "new",
-        comment: "Great service at the reception"
+        status: "new"
     },
     {
         id: 2,
         patientName: "Sarah Johnson",
-        department: "Nursing",
-        rating: 5,
+        departments: [
+            {
+                name: "Nursing",
+                rating: 5,
+                comment: "Nurses were very attentive"
+            },
+            {
+                name: "Doctors",
+                rating: 4,
+                comment: "Doctor was thorough"
+            }
+        ],
         date: "2024-10-19",
-        status: "resolved",
-        comment: "Nurses were very attentive"
+        status: "resolved"
     },
     {
         id: 3,
         patientName: "Michael Brown",
-        department: "Doctors",
-        rating: 3,
+        departments: [
+            {
+                name: "Doctors",
+                rating: 3,
+                comment: "Long waiting time"
+            },
+            {
+                name: "Reception",
+                rating: 4,
+                comment: "Friendly reception"
+            }
+        ],
         date: "2024-10-18",
-        status: "pending",
-        comment: "Long waiting time"
+        status: "pending"
     }
-    // Add more mock data as needed
 ];
 
-// Login handler
+// Login handler remains the same
 function handleLogin(event) {
     event.preventDefault();
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
 
-    // Mock authentication - replace with real authentication
     if (username === "admin" && password === "password") {
         window.location.href = "dashboard.html";
     } else {
@@ -58,26 +83,48 @@ function populateFeedbackTable(feedback) {
     const tableBody = document.getElementById('feedbackTableBody');
     if (!tableBody) return;
 
-    tableBody.innerHTML = feedback.map(item => `
-        <tr>
-            <td>${item.patientName}</td>
-            <td>${item.department}</td>
-            <td>
-                ${generateStarRating(item.rating)}
-            </td>
-            <td>${formatDate(item.date)}</td>
-            <td>
-                <span class="status-badge status-${item.status}">
-                    ${item.status.charAt(0).toUpperCase() + item.status.slice(1)}
-                </span>
-            </td>
-            <td>
-                <button class="btn-secondary" onclick="viewFeedbackDetails(${item.id})">
-                    View Details
-                </button>
-            </td>
-        </tr>
-    `).join('');
+    tableBody.innerHTML = feedback.map(item => {
+        // Get the first department to show initially
+        const primaryDepartment = item.departments[0];
+        
+        return `
+            <tr data-feedback-id="${item.id}">
+                <td>${item.patientName}</td>
+                <td>
+                    <select class="department-selector" onchange="handleDepartmentChange(this, ${item.id})">
+                        ${item.departments.map((dept, index) => `
+                            <option value="${index}">${dept.name}</option>
+                        `).join('')}
+                    </select>
+                </td>
+                <td class="rating-cell">
+                    ${generateStarRating(primaryDepartment.rating)}
+                </td>
+                <td>${formatDate(item.date)}</td>
+                <td>
+                    <span class="status-badge status-${item.status}">
+                        ${item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn-secondary" onclick="viewFeedbackDetails(${item.id})">
+                        View Details
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function handleDepartmentChange(selectElement, feedbackId) {
+    const selectedIndex = selectElement.value;
+    const feedback = mockFeedback.find(item => item.id === feedbackId);
+    const selectedDepartment = feedback.departments[selectedIndex];
+    
+    // Update the rating display
+    const row = selectElement.closest('tr');
+    const ratingCell = row.querySelector('.rating-cell');
+    ratingCell.innerHTML = generateStarRating(selectedDepartment.rating);
 }
 
 function generateStarRating(rating) {
@@ -115,7 +162,10 @@ function handleSearch(event) {
     const searchTerm = event.target.value.toLowerCase();
     const filteredFeedback = mockFeedback.filter(item =>
         item.patientName.toLowerCase().includes(searchTerm) ||
-        item.department.toLowerCase().includes(searchTerm)
+        item.departments.some(dept => 
+            dept.name.toLowerCase().includes(searchTerm) ||
+            dept.comment.toLowerCase().includes(searchTerm)
+        )
     );
     populateFeedbackTable(filteredFeedback);
 }
@@ -128,7 +178,9 @@ function handleFilters() {
 
     if (department) {
         filteredFeedback = filteredFeedback.filter(item =>
-            item.department.toLowerCase() === department.toLowerCase()
+            item.departments.some(dept => 
+                dept.name.toLowerCase() === department.toLowerCase()
+            )
         );
     }
 
@@ -163,24 +215,29 @@ function handleFilters() {
 function viewFeedbackDetails(id) {
     const feedback = mockFeedback.find(item => item.id === id);
     if (feedback) {
+        const departmentsInfo = feedback.departments.map(dept => 
+            `\n${dept.name}:\nRating: ${dept.rating}/5\nComment: ${dept.comment}`
+        ).join('\n');
+        
         alert(`
-            Patient: ${feedback.patientName}
-            Department: ${feedback.department}
-            Rating: ${feedback.rating}/5
-            Date: ${formatDate(feedback.date)}
-            Status: ${feedback.status}
-            Comment: ${feedback.comment}
+Patient: ${feedback.patientName}
+Date: ${formatDate(feedback.date)}
+Status: ${feedback.status}
+
+Departments Feedback:${departmentsInfo}
         `);
-        // In a real application, you would show this in a modal or navigate to a details page
     }
 }
 
-// Update stats periodically
 function updateDashboardStats() {
-    // In a real application, this would fetch real-time data
+    // Calculate total ratings across all departments
+    const allRatings = mockFeedback.flatMap(item => 
+        item.departments.map(dept => dept.rating)
+    );
+    
     const stats = {
-        totalFeedback: mockFeedback.length,
-        averageRating: (mockFeedback.reduce((acc, curr) => acc + curr.rating, 0) / mockFeedback.length).toFixed(1),
+        totalFeedback: mockFeedback.reduce((acc, curr) => acc + curr.departments.length, 0),
+        averageRating: (allRatings.reduce((acc, curr) => acc + curr, 0) / allRatings.length).toFixed(1),
         responseTime: '2.3',
         activeCases: mockFeedback.filter(item => item.status === 'pending').length
     };
