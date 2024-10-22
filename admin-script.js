@@ -1,4 +1,3 @@
-// Updated mock data structure to support multiple departments per patient
 const mockFeedback = [
     {
         id: 1,
@@ -15,7 +14,7 @@ const mockFeedback = [
                 comment: "Excellent nursing staff"
             }
         ],
-        recommendationScore: 9, // NPS score (0-10)
+        recommendationScore: 9,
         date: "2024-10-20",
         status: "new"
     },
@@ -58,6 +57,33 @@ const mockFeedback = [
         status: "pending"
     }
 ];
+
+function calculateDashboardStats() {
+    // Calculate total feedback entries
+    const totalFeedback = mockFeedback.reduce((acc, curr) => acc + curr.departments.length, 0);
+    
+    // Calculate average rating
+    const allRatings = mockFeedback.flatMap(item => 
+        item.departments.map(dept => dept.rating)
+    );
+    const averageRating = (allRatings.reduce((acc, curr) => acc + curr, 0) / allRatings.length).toFixed(1);
+    
+    // Calculate NPS
+    const npsScores = mockFeedback.map(item => item.recommendationScore);
+    const promoters = npsScores.filter(score => score >= 9).length;
+    const detractors = npsScores.filter(score => score <= 6).length;
+    const npsScore = Math.round(((promoters - detractors) / npsScores.length) * 100);
+    
+    // Calculate active cases
+    const activeCases = mockFeedback.filter(item => item.status === "pending").length;
+
+    return {
+        totalFeedback,
+        averageRating,
+        npsScore,
+        activeCases
+    };
+}
 
 // Login handler remains the same
 function handleLogin(event) {
@@ -241,36 +267,18 @@ Departments Feedback:${departmentsInfo}
 }
 
 function updateDashboardStats() {
-    // Calculate total ratings across all departments and NPS scores
-    const allRatings = mockFeedback.flatMap(item => 
-        item.departments.map(dept => dept.rating)
-    );
+    const stats = calculateDashboardStats();
     
-    // Calculate NPS
-    const npsScores = mockFeedback.map(item => item.recommendationScore);
-    const promoters = npsScores.filter(score => score >= 9).length;
-    const detractors = npsScores.filter(score => score <= 6).length;
-    const npsScore = Math.round((promoters - detractors) / npsScores.length * 100);
-    
-    const stats = {
-        totalFeedback: mockFeedback.reduce((acc, curr) => acc + curr.departments.length, 0),
-        averageRating: (allRatings.reduce((acc, curr) => acc + curr, 0) / allRatings.length).toFixed(1),
-        nps: npsScore,
-        responseTime: '2.3',
-        activeCases: mockFeedback.filter(item => item.status === 'pending').length
-    };
-
-    // Update stats display
-    document.querySelectorAll('.stat-info p').forEach(stat => {
-        const statType = stat.parentElement.querySelector('h3').textContent.toLowerCase();
-        if (stats[statType]) {
-            stat.textContent = statType === 'nps' ? `${stats[statType]}%` : stats[statType];
-        }
-    });
+    // Update DOM elements
+    document.getElementById('totalFeedback').textContent = stats.totalFeedback;
+    document.getElementById('averageRating').textContent = stats.averageRating;
+    document.getElementById('npsScore').textContent = `${stats.npsScore}%`;
+    document.getElementById('activeCases').textContent = stats.activeCases;
 }
 
-// Initialize stats update
-if (document.querySelector('.dashboard-stats')) {
+// Initialize stats on page load
+document.addEventListener('DOMContentLoaded', () => {
     updateDashboardStats();
-    setInterval(updateDashboardStats, 30000); // Update every 30 seconds
-}
+    // Update stats every 30 seconds
+    setInterval(updateDashboardStats, 30000);
+});
