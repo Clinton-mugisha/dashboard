@@ -15,6 +15,7 @@ const mockFeedback = [
                 comment: "Excellent nursing staff"
             }
         ],
+        recommendationScore: 9, // NPS score (0-10)
         date: "2024-10-20",
         status: "new"
     },
@@ -33,6 +34,7 @@ const mockFeedback = [
                 comment: "Doctor was thorough"
             }
         ],
+        recommendationScore: 8,
         date: "2024-10-19",
         status: "resolved"
     },
@@ -51,6 +53,7 @@ const mockFeedback = [
                 comment: "Friendly reception"
             }
         ],
+        recommendationScore: 6,
         date: "2024-10-18",
         status: "pending"
     }
@@ -84,7 +87,6 @@ function populateFeedbackTable(feedback) {
     if (!tableBody) return;
 
     tableBody.innerHTML = feedback.map(item => {
-        // Get the first department to show initially
         const primaryDepartment = item.departments[0];
         
         return `
@@ -99,6 +101,9 @@ function populateFeedbackTable(feedback) {
                 </td>
                 <td class="rating-cell">
                     ${generateStarRating(primaryDepartment.rating)}
+                </td>
+                <td class="nps-cell">
+                    ${generateNPSDisplay(item.recommendationScore)}
                 </td>
                 <td>${formatDate(item.date)}</td>
                 <td>
@@ -212,6 +217,11 @@ function handleFilters() {
     populateFeedbackTable(filteredFeedback);
 }
 
+function generateNPSDisplay(score) {
+    const npsClass = score >= 9 ? 'promoter' : score >= 7 ? 'passive' : 'detractor';
+    return `<span class="nps-score ${npsClass}">${score}/10</span>`;
+}
+
 function viewFeedbackDetails(id) {
     const feedback = mockFeedback.find(item => item.id === id);
     if (feedback) {
@@ -223,6 +233,7 @@ function viewFeedbackDetails(id) {
 Patient: ${feedback.patientName}
 Date: ${formatDate(feedback.date)}
 Status: ${feedback.status}
+Likelihood to Recommend: ${feedback.recommendationScore}/10
 
 Departments Feedback:${departmentsInfo}
         `);
@@ -230,14 +241,21 @@ Departments Feedback:${departmentsInfo}
 }
 
 function updateDashboardStats() {
-    // Calculate total ratings across all departments
+    // Calculate total ratings across all departments and NPS scores
     const allRatings = mockFeedback.flatMap(item => 
         item.departments.map(dept => dept.rating)
     );
     
+    // Calculate NPS
+    const npsScores = mockFeedback.map(item => item.recommendationScore);
+    const promoters = npsScores.filter(score => score >= 9).length;
+    const detractors = npsScores.filter(score => score <= 6).length;
+    const npsScore = Math.round((promoters - detractors) / npsScores.length * 100);
+    
     const stats = {
         totalFeedback: mockFeedback.reduce((acc, curr) => acc + curr.departments.length, 0),
         averageRating: (allRatings.reduce((acc, curr) => acc + curr, 0) / allRatings.length).toFixed(1),
+        nps: npsScore,
         responseTime: '2.3',
         activeCases: mockFeedback.filter(item => item.status === 'pending').length
     };
@@ -246,7 +264,7 @@ function updateDashboardStats() {
     document.querySelectorAll('.stat-info p').forEach(stat => {
         const statType = stat.parentElement.querySelector('h3').textContent.toLowerCase();
         if (stats[statType]) {
-            stat.textContent = stats[statType];
+            stat.textContent = statType === 'nps' ? `${stats[statType]}%` : stats[statType];
         }
     });
 }
