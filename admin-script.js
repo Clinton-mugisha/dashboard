@@ -36,9 +36,14 @@ const mockFeedback = [
                 name: "Doctors",
                 rating: 4,
                 comment: "Doctor was thorough"
+            },
+            {
+                name: "Cafeteria",
+                rating: 3,
+                comment: "Doctor was thorough"
             }
         ],
-        recommendationScore: 8,
+        recommendationScore: 9,
         date: "2024-10-19",
         status: "resolved"
     },
@@ -55,6 +60,25 @@ const mockFeedback = [
                 name: "Reception",
                 rating: 4,
                 comment: "Friendly reception"
+            }
+        ],
+        recommendationScore: 6,
+        date: "2024-10-18",
+        status: "pending"
+    },
+    {
+        id: 4,
+        patientName: "Sydney",
+        departments: [
+            {
+                name: "Doctors",
+                rating: 3,
+                comment: "Long waiting time"
+            },
+            {
+                name: "Immunisation",
+                rating: 4,
+                comment: "Good"
             }
         ],
         recommendationScore: 6,
