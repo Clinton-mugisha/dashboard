@@ -438,19 +438,32 @@ th {
     color: #1e293b;
 }
 
-.close-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem;
-    color: #64748b;
-    font-size: 1.5rem;
-    line-height: 1;
-    transition: color 0.3s ease;
+.modal-actions {
+    display: flex;
+    gap: 1rem;
 }
 
-.close-button:hover {
-    color: #ef4444;
+.btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-close {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.btn-export {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn:hover {
+    opacity: 0.9;
 }
 
 .patient-info {
@@ -510,6 +523,17 @@ th {
     line-height: 1.5;
 }
 
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-new { background: #dbeafe; color: #2563eb; }
+.status-resolved { background: #dcfce7; color: #16a34a; }
+.status-pending { background: #fef9c3; color: #ca8a04; }
+
 .nps-score {
     display: inline-flex;
     align-items: center;
@@ -518,20 +542,9 @@ th {
     font-weight: 500;
 }
 
-.nps-promoter {
-    background: #dcfce7;
-    color: #16a34a;
-}
-
-.nps-passive {
-    background: #fef9c3;
-    color: #ca8a04;
-}
-
-.nps-detractor {
-    background: #fee2e2;
-    color: #dc2626;
-}
+.nps-promoter { background: #dcfce7; color: #16a34a; }
+.nps-passive { background: #fef9c3; color: #ca8a04; }
+.nps-detractor { background: #fee2e2; color: #dc2626; }
 
 .modal-open {
     display: flex;
@@ -541,6 +554,23 @@ th {
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    .modal-card, .modal-card * {
+        visibility: visible;
+    }
+    .modal-card {
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+    .btn-close, .btn-export {
+        display: none;
+    }
 }
 /* Responsive grid adjustments */
 .dashboard-stats {

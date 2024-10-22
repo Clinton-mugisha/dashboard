@@ -282,63 +282,102 @@ function viewFeedbackDetails(id) {
     if (!feedback) return;
 
     const npsClass = feedback.recommendationScore >= 9 ? 'promoter' : 
-                    feedback.recommendationScore >= 7 ? 'passive' : 'detractor';
+                   feedback.recommendationScore >= 7 ? 'passive' : 'detractor';
 
     const generateStars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
 
     const modalContent = document.getElementById('modalContent');
     modalContent.innerHTML = `
-        <div class="patient-info">
-            <div class="info-row">
-                <div class="info-label">Patient Name</div>
-                <div class="info-value">${feedback.patientName}</div>
-            </div>
-            <div class="info-row">
-                <div class="info-label">Date</div>
-                <div class="info-value">${formatDate(feedback.date)}</div>
-            </div>
-            <div class="info-row">
-                <div class="info-label">Status</div>
-                <div class="info-value">
-                    <span class="status-badge status-${feedback.status}">
-                        ${feedback.status.charAt(0).toUpperCase() + feedback.status.slice(1)}
-                    </span>
+        <div id="exportContent">
+            <div class="patient-info">
+                <div class="info-row">
+                    <div class="info-label">Patient Name</div>
+                    <div class="info-value">${feedback.patientName}</div>
                 </div>
-            </div>
-            <div class="info-row">
-                <div class="info-label">Recommendation</div>
-                <div class="info-value">
-                    <span class="nps-score nps-${npsClass}">
-                        ${feedback.recommendationScore}/10
-                    </span>
+                <div class="info-row">
+                    <div class="info-label">Date</div>
+                    <div class="info-value">${formatDate(feedback.date)}</div>
                 </div>
-            </div>
-        </div>
-
-        <h3>Department Feedback</h3>
-        <div class="departments-feedback">
-            ${feedback.departments.map(dept => `
-                <div class="department-card">
-                    <div class="department-header">
-                        <span class="department-name">${dept.name}</span>
-                        <span class="rating-stars">${generateStars(dept.rating)}</span>
+                <div class="info-row">
+                    <div class="info-label">Status</div>
+                    <div class="info-value">
+                        <span class="status-badge status-${feedback.status}">
+                            ${feedback.status.charAt(0).toUpperCase() + feedback.status.slice(1)}
+                        </span>
                     </div>
-                    <p class="feedback-comment">${dept.comment}</p>
                 </div>
-            `).join('')}
+                <div class="info-row">
+                    <div class="info-label">Recommendation</div>
+                    <div class="info-value">
+                        <span class="nps-score nps-${npsClass}">
+                            ${feedback.recommendationScore}/10
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Department Feedback</h3>
+            <div class="departments-feedback">
+                ${feedback.departments.map(dept => `
+                    <div class="department-card">
+                        <div class="department-header">
+                            <span class="department-name">${dept.name}</span>
+                            <span class="rating-stars">${generateStars(dept.rating)}</span>
+                        </div>
+                        <p class="feedback-comment">${dept.comment}</p>
+                    </div>
+                `).join('')}
+            </div>
         </div>
     `;
 
     const modal = document.getElementById('feedbackModal');
     modal.classList.add('modal-open');
-    
-    // Close modal when clicking outside
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeFeedbackModal();
-        }
-    });
 }
+
+async function exportToPDF() {
+    // Get the content to export
+    const content = document.getElementById('exportContent');
+    
+    // Create a clone of the content
+    const clone = content.cloneNode(true);
+    
+    // Create a temporary container
+    const tempContainer = document.createElement('div');
+    tempContainer.appendChild(clone);
+    document.body.appendChild(tempContainer);
+    
+    // Configure PDF options
+    const options = {
+        margin: [10, 10],
+        filename: 'feedback-report.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+            scale: 2,
+            useCORS: true,
+            logging: false
+        },
+        jsPDF: { 
+            unit: 'mm', 
+            format: 'a4', 
+            orientation: 'portrait'
+        }
+    };
+
+    try {
+        // Generate PDF
+        await html2pdf()
+            .set(options)
+            .from(tempContainer)
+            .save();
+    } catch (error) {
+        console.error('PDF generation failed:', error);
+    } finally {
+        // Clean up
+        document.body.removeChild(tempContainer);
+    }
+}
+
 
 function closeFeedbackModal() {
     const modal = document.getElementById('feedbackModal');
@@ -348,6 +387,11 @@ function closeFeedbackModal() {
 // Close modal with Escape key
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+        closeFeedbackModal();
+    }
+});
+document.getElementById('feedbackModal').addEventListener('click', (e) => {
+    if (e.target.id === 'feedbackModal') {
         closeFeedbackModal();
     }
 });
