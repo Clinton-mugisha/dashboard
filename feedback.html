@@ -71,6 +71,7 @@
                             <option value="Reception">Reception</option>
                             <option value="Nursing">Nursing</option>
                             <option value="Doctors">Doctors</option>
+                            <option value="Triage">Triage</option>
                         </select>
                         <select id="dateFilter">
                             <option value="">All Time</option>
@@ -100,6 +101,15 @@
                     </table>
                 </div>
             </div>
+        </div>
+    </div>
+    <div id="feedbackModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 class="modal-title">Feedback Details</h2>
+                <button class="close-button" onclick="closeFeedbackModal()">&times;</button>
+            </div>
+            <div id="modalContent"></div>
         </div>
     </div>
 

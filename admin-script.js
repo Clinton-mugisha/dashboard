@@ -12,6 +12,11 @@ const mockFeedback = [
                 name: "Nursing",
                 rating: 5,
                 comment: "Excellent nursing staff"
+            },
+            {
+                name: "Triage",
+                rating: 5,
+                comment: "Excellent triage service"
             }
         ],
         recommendationScore: 9,
@@ -250,21 +255,78 @@ function generateNPSDisplay(score) {
 
 function viewFeedbackDetails(id) {
     const feedback = mockFeedback.find(item => item.id === id);
-    if (feedback) {
-        const departmentsInfo = feedback.departments.map(dept => 
-            `\n${dept.name}:\nRating: ${dept.rating}/5\nComment: ${dept.comment}`
-        ).join('\n');
-        
-        alert(`
-Patient: ${feedback.patientName}
-Date: ${formatDate(feedback.date)}
-Status: ${feedback.status}
-Likelihood to Recommend: ${feedback.recommendationScore}/10
+    if (!feedback) return;
 
-Departments Feedback:${departmentsInfo}
-        `);
-    }
+    const npsClass = feedback.recommendationScore >= 9 ? 'promoter' : 
+                    feedback.recommendationScore >= 7 ? 'passive' : 'detractor';
+
+    const generateStars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
+
+    const modalContent = document.getElementById('modalContent');
+    modalContent.innerHTML = `
+        <div class="patient-info">
+            <div class="info-row">
+                <div class="info-label">Patient Name</div>
+                <div class="info-value">${feedback.patientName}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Date</div>
+                <div class="info-value">${formatDate(feedback.date)}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Status</div>
+                <div class="info-value">
+                    <span class="status-badge status-${feedback.status}">
+                        ${feedback.status.charAt(0).toUpperCase() + feedback.status.slice(1)}
+                    </span>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Recommendation</div>
+                <div class="info-value">
+                    <span class="nps-score nps-${npsClass}">
+                        ${feedback.recommendationScore}/10
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <h3>Department Feedback</h3>
+        <div class="departments-feedback">
+            ${feedback.departments.map(dept => `
+                <div class="department-card">
+                    <div class="department-header">
+                        <span class="department-name">${dept.name}</span>
+                        <span class="rating-stars">${generateStars(dept.rating)}</span>
+                    </div>
+                    <p class="feedback-comment">${dept.comment}</p>
+                </div>
+            `).join('')}
+        </div>
+    `;
+
+    const modal = document.getElementById('feedbackModal');
+    modal.classList.add('modal-open');
+    
+    // Close modal when clicking outside
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeFeedbackModal();
+        }
+    });
 }
+
+function closeFeedbackModal() {
+    const modal = document.getElementById('feedbackModal');
+    modal.classList.remove('modal-open');
+}
+
+// Close modal with Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeFeedbackModal();
+    }
+});
 
 function updateDashboardStats() {
     const stats = calculateDashboardStats();
